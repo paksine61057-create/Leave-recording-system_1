@@ -194,7 +194,7 @@ const Reports: React.FC = () => {
         <div className="text-center mb-8">
           <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-24 w-24 mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-gray-900">
-             {viewMode === 'list' ? 'รายงานรายละเอียดการลา' : 'แบบสรุปวันลาพักผ่อนประจำปีของข้าราชการครูและบุคลากรทางการศึกษา'}
+             แบบสรุปวันลาของข้าราชการครูและบุคลากรทางการศึกษา
           </h1>
           <h2 className="text-xl font-medium text-gray-700">โรงเรียนประจักษ์ศิลปาคม</h2>
           <p className="text-gray-600 mt-2 font-medium">
