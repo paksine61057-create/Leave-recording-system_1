@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Role, LeaveRecord, LEAVE_TYPES, POSITIONS, Staff } from '../types';
 import { getLeaveRecords, getStaffList, deleteLeaveRecord, updateLeaveRecord } from '../services/dataService';
-import { Search, Calendar, Trash2, Edit, X, Save, Plus, Loader2 } from 'lucide-react';
+import { Search, Calendar, Trash2, Edit, X, Save, Plus, Loader2, PieChart } from 'lucide-react';
 
 interface HistoryProps {
   user: User;
@@ -129,6 +129,30 @@ const History: React.FC<HistoryProps> = ({ user }) => {
     return result.sort((a, b) => new Date(b.dates[0]).getTime() - new Date(a.dates[0]).getTime());
   }, [records, selectedStaffName, selectedMonth, yearFilter, isAdmin, user.fullName]);
 
+  // --- Statistics Calculation ---
+  const stats = useMemo(() => {
+    const s = {
+      totalTimes: 0,
+      totalDays: 0,
+      byType: {} as Record<string, { times: number, days: number }>
+    };
+    
+    // Initialize
+    LEAVE_TYPES.forEach(t => s.byType[t] = { times: 0, days: 0 });
+
+    filteredRecords.forEach(r => {
+      s.totalTimes += 1;
+      s.totalDays += r.totalDays;
+      if (s.byType[r.leaveType]) {
+        s.byType[r.leaveType].times += 1;
+        s.byType[r.leaveType].days += r.totalDays;
+      }
+    });
+
+    return s;
+  }, [filteredRecords]);
+
+
   const thaiMonths = [
     "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
     "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
@@ -203,7 +227,52 @@ const History: React.FC<HistoryProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Results */}
+      {/* Summary Statistics Section */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-indigo-100">
+         <h3 className="text-sm font-bold text-gray-600 mb-4 flex items-center uppercase tracking-wider">
+            <PieChart className="w-4 h-4 mr-2" /> 
+            สรุปข้อมูลการลา ({selectedMonth !== -1 ? thaiMonths[selectedMonth] : 'ทุกเดือน'} {yearFilter})
+         </h3>
+         
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Grand Total */}
+            <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg p-3 text-white shadow-sm col-span-2 md:col-span-1">
+               <div className="text-xs text-indigo-100 font-medium">ลาทั้งหมด</div>
+               <div className="flex items-baseline mt-1 space-x-2">
+                  <span className="text-2xl font-bold">{stats.totalTimes}</span>
+                  <span className="text-xs opacity-80">ครั้ง</span>
+                  <span className="text-lg font-bold border-l border-white/30 pl-2">{stats.totalDays}</span>
+                  <span className="text-xs opacity-80">วัน</span>
+               </div>
+            </div>
+
+            {/* Breakdown by Type */}
+            {Object.entries(stats.byType).map(([type, val]: [string, { times: number, days: number }]) => {
+                if (val.times === 0) return null; // Only show types with data
+                
+                // Color coding for common types
+                let colorClass = "bg-gray-50 border-gray-200 text-gray-700";
+                if (type === 'การลาป่วย') colorClass = "bg-red-50 border-red-100 text-red-700";
+                else if (type === 'การลากิจส่วนตัว') colorClass = "bg-orange-50 border-orange-100 text-orange-700";
+                else if (type === 'การลาพักผ่อน') colorClass = "bg-green-50 border-green-100 text-green-700";
+                else if (type.includes('คลอด')) colorClass = "bg-pink-50 border-pink-100 text-pink-700";
+
+                return (
+                    <div key={type} className={`rounded-lg p-3 border shadow-sm ${colorClass}`}>
+                       <div className="text-xs font-semibold truncate" title={type}>{type}</div>
+                       <div className="flex items-baseline mt-1 space-x-1">
+                          <span className="text-lg font-bold">{val.times}</span>
+                          <span className="text-[10px] opacity-70">ครั้ง</span>
+                          <span className="text-sm font-bold border-l border-current/20 pl-2">{val.days}</span>
+                          <span className="text-[10px] opacity-70">วัน</span>
+                       </div>
+                    </div>
+                );
+            })}
+         </div>
+      </div>
+
+      {/* Results Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-indigo-50">
          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-indigo-50">

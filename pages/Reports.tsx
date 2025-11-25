@@ -357,41 +357,42 @@ const Reports: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {summaryData.length > 0 ? summaryData.map((person, index) => (
-                  <tr key={person.name} className="hover:bg-gray-50 transition-colors print:hover:bg-transparent">
-                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 border border-gray-300 text-center">{index + 1}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-300 text-left">{person.name}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 border border-gray-300 text-center">{person.position}</td>
-                    
-                    <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.sick > 0 ? person.sick : '-'}</td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.personal > 0 ? person.personal : '-'}</td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.vacation > 0 ? person.vacation : '-'}</td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.birth > 0 ? person.birth : '-'}</td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.other > 0 ? person.other : '-'}</td>
-                    
-                    <td className="px-2 py-2 text-center text-sm font-bold text-gray-700 border border-gray-300 bg-gray-50">{person.totalTimes}</td>
-                    <td className="px-2 py-2 text-center text-sm font-bold text-blue-700 border border-gray-300 bg-blue-50/50">{person.total}</td>
-                  </tr>
-                )) : (
+                {summaryData.length > 0 ? (
+                  <>
+                    {summaryData.map((person, index) => (
+                      <tr key={person.name} className="hover:bg-gray-50 transition-colors print:hover:bg-transparent">
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 border border-gray-300 text-center">{index + 1}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-300 text-left">{person.name}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 border border-gray-300 text-center">{person.position}</td>
+                        
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.sick > 0 ? person.sick : '-'}</td>
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.personal > 0 ? person.personal : '-'}</td>
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.vacation > 0 ? person.vacation : '-'}</td>
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.birth > 0 ? person.birth : '-'}</td>
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.other > 0 ? person.other : '-'}</td>
+                        
+                        <td className="px-2 py-2 text-center text-sm font-bold text-gray-700 border border-gray-300 bg-gray-50">{person.totalTimes}</td>
+                        <td className="px-2 py-2 text-center text-sm font-bold text-blue-700 border border-gray-300 bg-blue-50/50">{person.total}</td>
+                      </tr>
+                    ))}
+                    {/* Grand Total Row inside tbody */}
+                    <tr className="bg-gray-100 font-bold border-t-2 border-gray-400 print:bg-gray-100 break-inside-avoid">
+                      <td colSpan={3} className="px-2 py-2 text-right border border-gray-300">รวมทั้งหมด</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.sick, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.personal, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.vacation, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.birth, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.other, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.totalTimes, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300 text-blue-800">{summaryData.reduce((a, b) => a + b.total, 0)}</td>
+                    </tr>
+                  </>
+                ) : (
                   <tr>
                     <td colSpan={10} className="px-6 py-8 text-center text-sm text-gray-500 italic">ไม่พบข้อมูล</td>
                   </tr>
                 )}
               </tbody>
-              {summaryData.length > 0 && (
-                <tfoot className="bg-gray-50 font-bold">
-                  <tr>
-                    <td colSpan={3} className="px-2 py-2 text-right border border-gray-300">รวมทั้งหมด</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.sick, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.personal, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.vacation, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.birth, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.other, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.totalTimes, 0)}</td>
-                    <td className="px-2 py-2 text-center border border-gray-300 text-blue-800">{summaryData.reduce((a, b) => a + b.total, 0)}</td>
-                  </tr>
-                </tfoot>
-              )}
             </table>
           )}
 
