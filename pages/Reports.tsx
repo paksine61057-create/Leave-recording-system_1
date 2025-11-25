@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getLeaveRecords } from '../services/dataService';
+import { getLeaveRecords, getStaffList } from '../services/dataService';
 import { Printer, FileDown, Loader2, Table, List } from 'lucide-react';
-import { LeaveRecord } from '../types';
+import { LeaveRecord, Staff } from '../types';
 
 const Reports: React.FC = () => {
-  const [filterType, setFilterType] = useState<'month' | 'year'>('year'); // Default to year for summaries
+  const [filterType, setFilterType] = useState<'month' | 'year' | 'fiscal_half'>('year');
+  const [fiscalHalf, setFiscalHalf] = useState<1 | 2>(1); // 1 = Oct-Mar, 2 = Apr-Sep
   const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list'); // 'list' = Detailed, 'matrix' = Summary
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [records, setRecords] = useState<LeaveRecord[]>([]);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetch = async () => {
-        const data = await getLeaveRecords();
-        setRecords(data);
+        const [leavesData, staffData] = await Promise.all([
+          getLeaveRecords(),
+          getStaffList()
+        ]);
+        setRecords(leavesData);
+        setStaffList(staffData);
         setLoading(false);
     };
     fetch();
@@ -30,18 +36,46 @@ const Reports: React.FC = () => {
     return records.filter(record => {
       if (!record.dates.length) return false;
       const date = new Date(record.dates[0]);
-      const yearMatch = date.getFullYear() === selectedYear;
+      const m = date.getMonth(); // 0-11
+      const y = date.getFullYear();
       
-      if (filterType === 'year') return yearMatch;
-      return yearMatch && date.getMonth() === selectedMonth;
+      if (filterType === 'year') {
+        // Simple calendar year match
+        return y === selectedYear;
+      } 
+      
+      if (filterType === 'month') {
+        // Month and Year match
+        return y === selectedYear && m === selectedMonth;
+      }
+
+      if (filterType === 'fiscal_half') {
+        // Fiscal Year Calculation
+        // E.g. Selected Year 2025 (2568)
+        // Round 1: Oct 2024 - Mar 2025
+        // Round 2: Apr 2025 - Sep 2025
+        
+        if (fiscalHalf === 1) {
+            // Check Oct-Dec of Previous Year OR Jan-Mar of Current Year
+            const isPrevYearPart = (y === selectedYear - 1) && (m >= 9); // Oct(9), Nov(10), Dec(11)
+            const isCurrYearPart = (y === selectedYear) && (m <= 2); // Jan(0), Feb(1), Mar(2)
+            return isPrevYearPart || isCurrYearPart;
+        } else {
+            // Check Apr-Sep of Current Year
+            return (y === selectedYear) && (m >= 3 && m <= 8); // Apr(3) to Sep(8)
+        }
+      }
+
+      return false;
     });
-  }, [records, filterType, selectedMonth, selectedYear]);
+  }, [records, filterType, selectedMonth, selectedYear, fiscalHalf]);
 
   // 2. Aggregate Data for Matrix View
   const summaryData = useMemo(() => {
     if (viewMode !== 'matrix') return [];
     
-    const summary: Record<string, {
+    // Initialize map with ALL staff to ensure order and completeness
+    const statsMap = new Map<string, {
       name: string;
       position: string;
       sick: number;
@@ -50,11 +84,31 @@ const Reports: React.FC = () => {
       birth: number;
       other: number;
       total: number;
-    }> = {};
+      totalTimes: number;
+    }>();
 
+    // Fill with empty stats for all staff
+    staffList.forEach(staff => {
+      statsMap.set(staff.name, {
+        name: staff.name,
+        position: staff.position,
+        sick: 0,
+        personal: 0,
+        vacation: 0,
+        birth: 0,
+        other: 0,
+        total: 0,
+        totalTimes: 0
+      });
+    });
+
+    // Aggregate data from records
     filteredRecords.forEach(r => {
-      if (!summary[r.staffName]) {
-        summary[r.staffName] = {
+      let entry = statsMap.get(r.staffName);
+      
+      // If staff not in current DB list (e.g. deleted/historical), create entry
+      if (!entry) {
+        entry = {
           name: r.staffName,
           position: r.position,
           sick: 0,
@@ -62,30 +116,38 @@ const Reports: React.FC = () => {
           vacation: 0,
           birth: 0,
           other: 0,
-          total: 0
+          total: 0,
+          totalTimes: 0
         };
+        statsMap.set(r.staffName, entry);
       }
 
       const days = r.totalDays;
-      summary[r.staffName].total += days;
+      entry.total += days;
+      entry.totalTimes += 1;
 
-      // Categorize Leave Types
       if (r.leaveType === 'การลาป่วย') {
-        summary[r.staffName].sick += days;
+        entry.sick += days;
       } else if (r.leaveType === 'การลากิจส่วนตัว') {
-        summary[r.staffName].personal += days;
+        entry.personal += days;
       } else if (r.leaveType === 'การลาพักผ่อน') {
-        summary[r.staffName].vacation += days;
+        entry.vacation += days;
       } else if (r.leaveType.includes('คลอด') || r.leaveType.includes('ภริยา')) {
-        summary[r.staffName].birth += days;
+        entry.birth += days;
       } else {
-        summary[r.staffName].other += days;
+        entry.other += days;
       }
     });
 
-    // Convert to array and sort by name
-    return Object.values(summary).sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredRecords, viewMode]);
+    // Generate result array preserving Staff List order
+    const orderedResult = staffList.map(staff => statsMap.get(staff.name)).filter(x => x !== undefined);
+    
+    // Append any orphaned records (staff not in DB but have records)
+    const processedNames = new Set(orderedResult.map(x => x!.name));
+    const remainingResult = Array.from(statsMap.values()).filter(item => !processedNames.has(item.name));
+
+    return [...orderedResult, ...remainingResult] as typeof orderedResult;
+  }, [filteredRecords, viewMode, staffList]);
 
   const handlePrint = () => {
     alert(
@@ -103,6 +165,21 @@ const Reports: React.FC = () => {
   const currentThaiDate = new Date().toLocaleDateString('th-TH', {
     day: 'numeric', month: 'long', year: 'numeric'
   });
+
+  const getReportSubtitle = () => {
+      const thaiYear = selectedYear + 543;
+      if (filterType === 'month') {
+          return `ประจำเดือน ${thaiMonths[selectedMonth]} ปี ${thaiYear}`;
+      } else if (filterType === 'fiscal_half') {
+          if (fiscalHalf === 1) {
+              return `รอบการประเมิน ครั้งที่ 1 (1 ตุลาคม ${thaiYear - 1} - 31 มีนาคม ${thaiYear})`;
+          } else {
+              return `รอบการประเมิน ครั้งที่ 2 (1 เมษายน ${thaiYear} - 30 กันยายน ${thaiYear})`;
+          }
+      } else {
+          return `ประจำปี ${thaiYear}`;
+      }
+  };
 
   if (loading) {
       return (
@@ -157,10 +234,11 @@ const Reports: React.FC = () => {
           <select 
             value={filterType} 
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="border-gray-300 rounded-lg border p-2.5 text-sm w-32 focus:ring-blue-500"
+            className="border-gray-300 rounded-lg border p-2.5 text-sm w-40 focus:ring-blue-500"
           >
             <option value="month">รายเดือน</option>
-            <option value="year">รายปี</option>
+            <option value="year">รายปี (ปฏิทิน)</option>
+            <option value="fiscal_half">รอบการประเมิน (ครึ่งปี)</option>
           </select>
         </div>
 
@@ -177,6 +255,20 @@ const Reports: React.FC = () => {
           </div>
         )}
 
+        {filterType === 'fiscal_half' && (
+           <div>
+            <label className="block text-sm font-semibold text-gray-600 mb-2">รอบที่</label>
+            <select 
+              value={fiscalHalf} 
+              onChange={(e) => setFiscalHalf(Number(e.target.value) as 1 | 2)}
+              className="border-gray-300 rounded-lg border p-2.5 text-sm w-48 focus:ring-blue-500"
+            >
+              <option value={1}>ครั้งที่ 1 (ต.ค. - มี.ค.)</option>
+              <option value={2}>ครั้งที่ 2 (เม.ย. - ก.ย.)</option>
+            </select>
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-semibold text-gray-600 mb-2">ปี (ค.ศ.)</label>
           <input 
@@ -184,6 +276,7 @@ const Reports: React.FC = () => {
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             className="border-gray-300 rounded-lg border p-2.5 text-sm w-28 focus:ring-blue-500"
+            placeholder="2025"
           />
         </div>
       </div>
@@ -198,7 +291,7 @@ const Reports: React.FC = () => {
           </h1>
           <h2 className="text-xl font-medium text-gray-700">โรงเรียนประจักษ์ศิลปาคม</h2>
           <p className="text-gray-600 mt-2 font-medium">
-            ประจำ{filterType === 'month' ? `เดือน ${thaiMonths[selectedMonth]}` : ''} ปี {selectedYear + 543}
+            {getReportSubtitle()}
           </p>
         </div>
 
@@ -252,7 +345,8 @@ const Reports: React.FC = () => {
                   <th rowSpan={2} className="px-2 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-100 print:bg-blue-100 w-48">ชื่อ-สกุล</th>
                   <th rowSpan={2} className="px-2 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-100 print:bg-blue-100">ตำแหน่ง</th>
                   <th colSpan={5} className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-50 print:bg-blue-50">ประเภทการลา (วัน)</th>
-                  <th rowSpan={2} className="px-2 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-100 print:bg-blue-100 w-16">รวมทั้งสิ้น</th>
+                  <th rowSpan={2} className="px-2 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-100 print:bg-blue-100 w-16">รวม (ครั้ง)</th>
+                  <th rowSpan={2} className="px-2 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-blue-100 print:bg-blue-100 w-16">รวม (วัน)</th>
                 </tr>
                 <tr>
                   <th className="px-1 py-2 text-center text-xs font-semibold text-gray-600 border border-gray-300 bg-white">ป่วย</th>
@@ -275,11 +369,12 @@ const Reports: React.FC = () => {
                     <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.birth > 0 ? person.birth : '-'}</td>
                     <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.other > 0 ? person.other : '-'}</td>
                     
+                    <td className="px-2 py-2 text-center text-sm font-bold text-gray-700 border border-gray-300 bg-gray-50">{person.totalTimes}</td>
                     <td className="px-2 py-2 text-center text-sm font-bold text-blue-700 border border-gray-300 bg-blue-50/50">{person.total}</td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500 italic">ไม่พบข้อมูลการลาในช่วงเวลานี้</td>
+                    <td colSpan={10} className="px-6 py-8 text-center text-sm text-gray-500 italic">ไม่พบข้อมูล</td>
                   </tr>
                 )}
               </tbody>
@@ -292,6 +387,7 @@ const Reports: React.FC = () => {
                     <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.vacation, 0)}</td>
                     <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.birth, 0)}</td>
                     <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.other, 0)}</td>
+                    <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.totalTimes, 0)}</td>
                     <td className="px-2 py-2 text-center border border-gray-300 text-blue-800">{summaryData.reduce((a, b) => a + b.total, 0)}</td>
                   </tr>
                 </tfoot>
