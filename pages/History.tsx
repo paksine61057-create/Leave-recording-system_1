@@ -244,7 +244,7 @@ const History: React.FC<HistoryProps> = ({ user }) => {
          
          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {/* Grand Total */}
-            <div className="bg-slate-800 rounded-xl p-4 text-white shadow-lg shadow-slate-200 col-span-2 md:col-span-1">
+            <div className="bg-slate-800 rounded-xl p-4 text-white shadow-lg shadow-slate-200 col-span-2 md:col-span-1 flex flex-col justify-center">
                <div className="text-xs text-slate-300 font-medium mb-1">ลาทั้งหมด</div>
                <div className="flex items-baseline space-x-2">
                   <span className="text-3xl font-bold">{stats.totalTimes}</span>
@@ -261,23 +261,30 @@ const History: React.FC<HistoryProps> = ({ user }) => {
                 {Object.entries(stats.byType).map(([type, val]: [string, { times: number, days: number }]) => {
                     if (val.times === 0) return null; // Only show types with data
                     
-                    // Elegant Color coding
-                    let colorClass = "bg-slate-50 border-slate-200 text-slate-700";
-                    if (type === 'การลาป่วย') colorClass = "bg-rose-50 border-rose-100 text-rose-800";
-                    else if (type === 'การลากิจส่วนตัว') colorClass = "bg-amber-50 border-amber-100 text-amber-800";
-                    else if (type === 'การลาพักผ่อน') colorClass = "bg-emerald-50 border-emerald-100 text-emerald-800";
+                    // Pastel & Fresh Color coding based on type keywords
+                    let colorClass = "bg-slate-100 border-slate-200 text-slate-700";
+                    
+                    if (type.includes('ป่วย')) colorClass = "bg-pink-100 border-pink-200 text-pink-700";
+                    else if (type.includes('กิจ')) colorClass = "bg-orange-100 border-orange-200 text-orange-700";
+                    else if (type.includes('พักผ่อน')) colorClass = "bg-teal-100 border-teal-200 text-teal-700";
+                    else if (type.includes('คลอด')) colorClass = "bg-purple-100 border-purple-200 text-purple-700";
+                    else if (type.includes('ศึกษา')) colorClass = "bg-blue-100 border-blue-200 text-blue-700";
+                    else if (type.includes('อุปสมบท')) colorClass = "bg-yellow-100 border-yellow-200 text-yellow-800";
+                    else if (type.includes('ช่วยเหลือ')) colorClass = "bg-indigo-100 border-indigo-200 text-indigo-700";
+                    else if (type.includes('ติดตาม')) colorClass = "bg-cyan-100 border-cyan-200 text-cyan-700";
+                    else if (type.includes('ทหาร') || type.includes('เตรียมพล')) colorClass = "bg-green-100 border-green-200 text-green-700";
                     
                     return (
-                        <div key={type} className={`rounded-xl p-3 border shadow-sm ${colorClass} flex flex-col justify-between`}>
-                        <div className="text-xs font-semibold truncate mb-2 opacity-80" title={type}>{type}</div>
+                        <div key={type} className={`rounded-xl p-3 border shadow-sm ${colorClass} flex flex-col justify-between transition-transform hover:scale-105 duration-200`}>
+                        <div className="text-xs font-semibold truncate mb-2 opacity-90" title={type}>{type}</div>
                         <div className="flex justify-between items-end">
                             <div>
                                 <span className="text-xl font-bold">{val.times}</span>
-                                <span className="text-[10px] ml-1 opacity-70">ครั้ง</span>
+                                <span className="text-[10px] ml-1 opacity-80">ครั้ง</span>
                             </div>
                             <div className="text-right">
                                 <span className="text-sm font-bold">{val.days}</span>
-                                <span className="text-[10px] ml-1 opacity-70">วัน</span>
+                                <span className="text-[10px] ml-1 opacity-80">วัน</span>
                             </div>
                         </div>
                         </div>
