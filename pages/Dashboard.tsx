@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { getLeaveRecords } from '../services/dataService';
-import { LEAVE_TYPES, LeaveRecord } from '../types';
+import { LEAVE_TYPES, LeaveRecord, Role } from '../types';
 import {
   BarChart,
   Bar,
@@ -14,13 +14,29 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
+import { Loader2, TrendingUp, Calendar, Users, Briefcase } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+// Alternating Cool/Warm colors for high contrast between adjacent months
+const FRESH_COLORS = [
+  '#3b82f6', // Oct - Blue (Cool)
+  '#f97316', // Nov - Orange (Warm)
+  '#06b6d4', // Dec - Cyan (Cool)
+  '#ef4444', // Jan - Red (Warm)
+  '#8b5cf6', // Feb - Violet (Cool)
+  '#eab308', // Mar - Yellow (Warm)
+  '#10b981', // Apr - Emerald (Cool)
+  '#ec4899', // May - Pink (Warm)
+  '#0ea5e9', // Jun - Sky (Cool)
+  '#f59e0b', // Jul - Amber (Warm)
+  '#6366f1', // Aug - Indigo (Cool)
+  '#f43f5e', // Sep - Rose (Warm)
+];
 
 const Dashboard: React.FC = () => {
   const [records, setRecords] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,50 +90,127 @@ const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-10 h-10 text-school-primary animate-spin" />
-        <span className="ml-3 text-gray-500 font-medium">กำลังโหลดข้อมูล...</span>
+        <span className="ml-3 text-slate-500 font-medium">กำลังโหลดข้อมูล...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">ภาพรวมสถิติการลา (ปีงบประมาณ 2569)</h2>
-          <p className="text-gray-500 text-sm">ข้อมูลเดือน ตุลาคม 2568 - กันยายน 2569</p>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
+            ภาพรวมสถิติการลา
+          </h2>
+          <p className="text-slate-500 text-sm mt-1 font-medium">ปีงบประมาณ 2569 (ต.ค. 68 - ก.ย. 69)</p>
         </div>
-        <div className="mt-2 md:mt-0 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium border border-indigo-100">
-           แดชบอร์ดผู้บริหาร
+        <div className="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200">
+           <Briefcase className="w-4 h-4 text-slate-600" />
+           <span className="text-slate-700 text-sm font-semibold">Dashboard</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1 */}
+          <div className="relative overflow-hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-100 group hover:shadow-lg transition-all duration-300">
+             <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+             <div className="relative z-10">
+                <div className="flex items-center space-x-3 mb-3">
+                   <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600 shadow-sm">
+                      <TrendingUp className="w-5 h-5" />
+                   </div>
+                   <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">การลาทั้งหมด</div>
+                </div>
+                <div className="text-4xl font-bold text-slate-800 mt-2">
+                  {records.length} <span className="text-lg text-slate-400 font-normal">ครั้ง</span>
+                </div>
+             </div>
+             <div className="mt-5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 w-full rounded-full"></div>
+             </div>
+          </div>
+          
+          {/* Card 2 */}
+          <div className="relative overflow-hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-100 group hover:shadow-lg transition-all duration-300">
+             <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-amber-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+             <div className="relative z-10">
+                <div className="flex items-center space-x-3 mb-3">
+                   <div className="p-2.5 bg-amber-50 rounded-xl text-amber-600 shadow-sm">
+                      <Calendar className="w-5 h-5" />
+                   </div>
+                   <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">วันลาสะสมรวม</div>
+                </div>
+                <div className="text-4xl font-bold text-slate-800 mt-2">
+                  {records.reduce((acc, curr) => acc + curr.totalDays, 0)} <span className="text-lg text-slate-400 font-normal">วัน</span>
+                </div>
+             </div>
+             <div className="mt-5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500 w-3/4 rounded-full"></div>
+             </div>
+          </div>
+          
+          {/* Card 3 */}
+          <div className="relative overflow-hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-100 group hover:shadow-lg transition-all duration-300">
+             <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+             <div className="relative z-10">
+                <div className="flex items-center space-x-3 mb-3">
+                   <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600 shadow-sm">
+                      <Users className="w-5 h-5" />
+                   </div>
+                   <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">บุคลากรที่ลา</div>
+                </div>
+                <div className="text-4xl font-bold text-slate-800 mt-2">
+                  {new Set(records.map(r => r.staffId)).size} <span className="text-lg text-slate-400 font-normal">คน</span>
+                </div>
+             </div>
+             <div className="mt-5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 w-1/2 rounded-full"></div>
+             </div>
+          </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Monthly Bar Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-50">
-          <h3 className="text-lg font-semibold mb-6 text-indigo-900 border-l-4 border-indigo-500 pl-3">สถิติการลารายเดือน</h3>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-8">
+             <h3 className="text-lg font-bold text-slate-800 flex items-center">
+               <span className="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></span>
+               สถิติการลารายเดือน
+             </h3>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={stats.monthlyData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e7ff" />
-                <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  cursor={{fill: '#f5f3ff'}}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  cursor={{fill: '#f8fafc'}}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  itemStyle={{ color: '#1e293b' }}
                 />
-                <Legend iconType="circle" />
-                <Bar dataKey="count" name="จำนวนวันลา" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={30} />
+                <Bar dataKey="count" name="จำนวนวันลา" radius={[6, 6, 0, 0]} barSize={35}>
+                  {stats.monthlyData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={FRESH_COLORS[index % FRESH_COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Type Pie Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-indigo-50">
-          <h3 className="text-lg font-semibold mb-6 text-indigo-900 border-l-4 border-emerald-500 pl-3">สัดส่วนประเภทการลา</h3>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-8">
+             <h3 className="text-lg font-bold text-slate-800 flex items-center">
+               <span className="w-1.5 h-6 bg-pink-500 rounded-full mr-3"></span>
+               สัดส่วนประเภทการลา
+             </h3>
+          </div>
           <div className="h-80 flex justify-center items-center">
              {stats.pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -127,50 +220,34 @@ const Dashboard: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={90}
-                    innerRadius={60}
-                    paddingAngle={2}
+                    outerRadius={105}
+                    innerRadius={65}
+                    paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                   >
                     {stats.pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="fff" strokeWidth={2} />
+                      <Cell key={`cell-${index}`} fill={FRESH_COLORS[index % FRESH_COLORS.length]} stroke="#fff" strokeWidth={3} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  <Legend 
+                    layout="vertical" 
+                    align="right" 
+                    verticalAlign="middle" 
+                    iconType="circle" 
+                    wrapperStyle={{ fontSize: '12px', color: '#475569' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
              ) : (
-               <div className="text-gray-400 text-center py-10 bg-gray-50 rounded-lg w-full">ยังไม่มีข้อมูลการลา</div>
+               <div className="flex flex-col items-center justify-center text-slate-300 h-full w-full bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                 <Calendar className="w-12 h-12 mb-2 opacity-50" />
+                 <span>ยังไม่มีข้อมูลการลา</span>
+               </div>
              )}
           </div>
         </div>
-      </div>
-      
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-6 text-white shadow-lg shadow-indigo-200 transform hover:-translate-y-1 transition-transform">
-             <div className="text-blue-100 text-sm font-medium uppercase tracking-wider">การลาทั้งหมด</div>
-             <div className="text-4xl font-bold mt-2">{records.length} <span className="text-lg font-normal opacity-80">ครั้ง</span></div>
-             <div className="mt-4 h-1 bg-white/20 rounded-full w-full">
-               <div className="h-1 bg-white/60 rounded-full w-3/4"></div>
-             </div>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-orange-100 shadow-sm border-b-4 border-b-amber-400">
-             <div className="text-sm text-gray-500 font-medium uppercase tracking-wider">วันลาสะสมรวม</div>
-             <div className="text-4xl font-bold mt-2 text-gray-800">
-               {records.reduce((acc, curr) => acc + curr.totalDays, 0)} <span className="text-lg font-normal text-gray-400">วัน</span>
-             </div>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border border-emerald-100 shadow-sm border-b-4 border-b-emerald-400">
-             <div className="text-sm text-gray-500 font-medium uppercase tracking-wider">บุคลากรที่ลา</div>
-             <div className="text-4xl font-bold mt-2 text-gray-800">
-               {new Set(records.map(r => r.staffId)).size} <span className="text-lg font-normal text-gray-400">คน</span>
-             </div>
-          </div>
       </div>
     </div>
   );

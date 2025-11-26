@@ -85,6 +85,11 @@ const Reports: React.FC = () => {
       other: number;
       total: number;
       totalTimes: number;
+      sickTimes: number;
+      personalTimes: number;
+      vacationTimes: number;
+      birthTimes: number;
+      otherTimes: number;
     }>();
 
     // Fill with empty stats for all staff
@@ -98,7 +103,12 @@ const Reports: React.FC = () => {
         birth: 0,
         other: 0,
         total: 0,
-        totalTimes: 0
+        totalTimes: 0,
+        sickTimes: 0,
+        personalTimes: 0,
+        vacationTimes: 0,
+        birthTimes: 0,
+        otherTimes: 0
       });
     });
 
@@ -117,7 +127,12 @@ const Reports: React.FC = () => {
           birth: 0,
           other: 0,
           total: 0,
-          totalTimes: 0
+          totalTimes: 0,
+          sickTimes: 0,
+          personalTimes: 0,
+          vacationTimes: 0,
+          birthTimes: 0,
+          otherTimes: 0
         };
         statsMap.set(r.staffName, entry);
       }
@@ -128,14 +143,19 @@ const Reports: React.FC = () => {
 
       if (r.leaveType === 'การลาป่วย') {
         entry.sick += days;
+        entry.sickTimes += 1;
       } else if (r.leaveType === 'การลากิจส่วนตัว') {
         entry.personal += days;
+        entry.personalTimes += 1;
       } else if (r.leaveType === 'การลาพักผ่อน') {
         entry.vacation += days;
+        entry.vacationTimes += 1;
       } else if (r.leaveType.includes('คลอด') || r.leaveType.includes('ภริยา')) {
         entry.birth += days;
+        entry.birthTimes += 1;
       } else {
         entry.other += days;
+        entry.otherTimes += 1;
       }
     });
 
@@ -184,23 +204,31 @@ const Reports: React.FC = () => {
   if (loading) {
       return (
         <div className="flex justify-center items-center h-96">
-            <Loader2 className="animate-spin w-8 h-8 text-blue-500" />
+            <Loader2 className="animate-spin w-8 h-8 text-slate-500" />
         </div>
       );
   }
 
+  // Helper to render cell value with days only
+  const renderCell = (days: number) => {
+    if (days === 0) return '-';
+    return (
+      <span className="font-semibold text-gray-800">{days}</span>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="print:hidden flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <span className="p-2 bg-blue-100 rounded-lg mr-3 text-blue-700">
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center">
+            <span className="p-2.5 bg-white rounded-xl mr-3 text-slate-600 shadow-sm border border-slate-200">
                 <Printer className="w-6 h-6" />
             </span>
             รายงานสรุปการลา
         </h2>
         <button 
           onClick={handlePrint} 
-          className="flex items-center px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors shadow-lg shadow-gray-300"
+          className="flex items-center px-5 py-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition-colors shadow-lg shadow-slate-300"
         >
           <FileDown className="w-4 h-4 mr-2" />
           พิมพ์ / บันทึกเป็น PDF
@@ -208,21 +236,21 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Controls */}
-      <div className="print:hidden bg-blue-50/50 p-6 rounded-xl shadow-sm border border-blue-100 flex flex-wrap gap-6 items-end">
+      <div className="print:hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-6 items-end">
         
         {/* View Mode Selector */}
         <div>
-           <label className="block text-sm font-semibold text-gray-600 mb-2">รูปแบบการแสดงผล</label>
-           <div className="flex bg-white rounded-lg border border-gray-300 p-1">
+           <label className="block text-sm font-semibold text-slate-600 mb-2">รูปแบบการแสดงผล</label>
+           <div className="flex bg-slate-50 rounded-lg border border-slate-200 p-1">
               <button 
                 onClick={() => setViewMode('list')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-white text-school-primary shadow-sm border border-slate-100' : 'text-slate-500 hover:bg-slate-100'}`}
               >
                 <List className="w-4 h-4 mr-2" /> รายการละเอียด
               </button>
               <button 
                 onClick={() => setViewMode('matrix')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'matrix' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'matrix' ? 'bg-white text-school-primary shadow-sm border border-slate-100' : 'text-slate-500 hover:bg-slate-100'}`}
               >
                 <Table className="w-4 h-4 mr-2" /> สรุปรายบุคคล
               </button>
@@ -230,11 +258,11 @@ const Reports: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">ช่วงเวลา</label>
+          <label className="block text-sm font-semibold text-slate-600 mb-2">ช่วงเวลา</label>
           <select 
             value={filterType} 
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="border-gray-300 rounded-lg border p-2.5 text-sm w-40 focus:ring-blue-500"
+            className="border-slate-300 rounded-xl border p-2.5 text-sm w-40 focus:ring-school-primary"
           >
             <option value="month">รายเดือน</option>
             <option value="year">รายปี (ปฏิทิน)</option>
@@ -244,11 +272,11 @@ const Reports: React.FC = () => {
 
         {filterType === 'month' && (
            <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">เดือน</label>
+            <label className="block text-sm font-semibold text-slate-600 mb-2">เดือน</label>
             <select 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="border-gray-300 rounded-lg border p-2.5 text-sm w-40 focus:ring-blue-500"
+              className="border-slate-300 rounded-xl border p-2.5 text-sm w-40 focus:ring-school-primary"
             >
               {thaiMonths.map((m, i) => <option key={i} value={i}>{m}</option>)}
             </select>
@@ -257,11 +285,11 @@ const Reports: React.FC = () => {
 
         {filterType === 'fiscal_half' && (
            <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">รอบที่</label>
+            <label className="block text-sm font-semibold text-slate-600 mb-2">รอบที่</label>
             <select 
               value={fiscalHalf} 
               onChange={(e) => setFiscalHalf(Number(e.target.value) as 1 | 2)}
-              className="border-gray-300 rounded-lg border p-2.5 text-sm w-48 focus:ring-blue-500"
+              className="border-slate-300 rounded-xl border p-2.5 text-sm w-48 focus:ring-school-primary"
             >
               <option value={1}>ครั้งที่ 1 (ต.ค. - มี.ค.)</option>
               <option value={2}>ครั้งที่ 2 (เม.ย. - ก.ย.)</option>
@@ -270,19 +298,19 @@ const Reports: React.FC = () => {
         )}
 
         <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">ปี (ค.ศ.)</label>
+          <label className="block text-sm font-semibold text-slate-600 mb-2">ปี (ค.ศ.)</label>
           <input 
             type="number" 
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="border-gray-300 rounded-lg border p-2.5 text-sm w-28 focus:ring-blue-500"
+            className="border-slate-300 rounded-xl border p-2.5 text-sm w-28 focus:ring-school-primary"
             placeholder="2025"
           />
         </div>
       </div>
 
       {/* Printable Area */}
-      <div id="printable-area" className="bg-white p-8 shadow-sm rounded-xl print:shadow-none print:p-0 print:w-full">
+      <div id="printable-area" className="bg-white p-8 shadow-sm rounded-2xl print:shadow-none print:p-0 print:w-full border border-slate-200 print:border-none">
         
         <div className="text-center mb-8">
           <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-24 w-24 mx-auto mb-3" />
@@ -365,11 +393,11 @@ const Reports: React.FC = () => {
                         <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-300 text-left">{person.name}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-500 border border-gray-300 text-center">{person.position}</td>
                         
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.sick > 0 ? person.sick : '-'}</td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.personal > 0 ? person.personal : '-'}</td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.vacation > 0 ? person.vacation : '-'}</td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.birth > 0 ? person.birth : '-'}</td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 border border-gray-300">{person.other > 0 ? person.other : '-'}</td>
+                        <td className="px-2 py-2 text-center text-sm border border-gray-300">{renderCell(person.sick)}</td>
+                        <td className="px-2 py-2 text-center text-sm border border-gray-300">{renderCell(person.personal)}</td>
+                        <td className="px-2 py-2 text-center text-sm border border-gray-300">{renderCell(person.vacation)}</td>
+                        <td className="px-2 py-2 text-center text-sm border border-gray-300">{renderCell(person.birth)}</td>
+                        <td className="px-2 py-2 text-center text-sm border border-gray-300">{renderCell(person.other)}</td>
                         
                         <td className="px-2 py-2 text-center text-sm font-bold text-gray-700 border border-gray-300 bg-gray-50">{person.totalTimes}</td>
                         <td className="px-2 py-2 text-center text-sm font-bold text-blue-700 border border-gray-300 bg-blue-50/50">{person.total}</td>
@@ -378,11 +406,11 @@ const Reports: React.FC = () => {
                     {/* Grand Total Row inside tbody */}
                     <tr className="bg-gray-100 font-bold border-t-2 border-gray-400 print:bg-gray-100 break-inside-avoid">
                       <td colSpan={3} className="px-2 py-2 text-right border border-gray-300">รวมทั้งหมด</td>
-                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.sick, 0)}</td>
-                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.personal, 0)}</td>
-                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.vacation, 0)}</td>
-                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.birth, 0)}</td>
-                      <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.other, 0)}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{renderCell(summaryData.reduce((a, b) => a + b.sick, 0))}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{renderCell(summaryData.reduce((a, b) => a + b.personal, 0))}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{renderCell(summaryData.reduce((a, b) => a + b.vacation, 0))}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{renderCell(summaryData.reduce((a, b) => a + b.birth, 0))}</td>
+                      <td className="px-2 py-2 text-center border border-gray-300">{renderCell(summaryData.reduce((a, b) => a + b.other, 0))}</td>
                       <td className="px-2 py-2 text-center border border-gray-300">{summaryData.reduce((a, b) => a + b.totalTimes, 0)}</td>
                       <td className="px-2 py-2 text-center border border-gray-300 text-blue-800">{summaryData.reduce((a, b) => a + b.total, 0)}</td>
                     </tr>

@@ -32,51 +32,55 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
   }, [location]);
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden font-sans print:h-auto print:overflow-visible print:block">
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans print:h-auto print:overflow-visible print:block">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden print:hidden"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-20 lg:hidden print:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar - Hidden on Print */}
-      <div className={`fixed lg:static inset-y-0 left-0 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-200 ease-in-out print:hidden`}>
+      <div className={`fixed lg:static inset-y-0 left-0 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out print:hidden`}>
         <Sidebar user={user} />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:h-auto print:block">
-        {/* Header - Hidden on Print */}
-        <header className="bg-white shadow-sm z-10 print:hidden">
+      <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:h-auto print:block relative">
+        {/* Header - Glassmorphism */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 print:hidden sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                className="lg:hidden p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors"
               >
                 <Menu size={24} />
               </button>
               <div className="flex items-center ml-2 lg:ml-0">
-                 <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-10 w-10 mr-3" />
+                 <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-9 w-9 mr-3 drop-shadow-sm" />
                  <div>
-                   <h1 className="text-lg font-bold text-school-primary leading-tight">ระบบบันทึกการลา</h1>
-                   <p className="text-xs text-gray-500">โรงเรียนประจักษ์ศิลปาคม</p>
+                   <h1 className="text-lg font-bold text-slate-800 leading-tight">ระบบบันทึกการลา</h1>
+                   <p className="text-xs text-slate-500 font-medium">โรงเรียนประจักษ์ศิลปาคม</p>
                  </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center text-sm text-gray-700">
-                <UserIcon size={16} className="mr-2" />
-                <span className="font-medium">{user.fullName}</span>
-                <span className="ml-2 px-2 py-0.5 rounded text-xs bg-gray-200 text-gray-600 border border-gray-300">
+              <div className="hidden md:flex items-center text-sm text-slate-700 bg-slate-50 py-1 px-3 rounded-full border border-slate-200">
+                <UserIcon size={16} className="mr-2 text-slate-400" />
+                <span className="font-semibold">{user.fullName}</span>
+                <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
+                    user.role === Role.ADMIN 
+                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200' 
+                    : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                }`}>
                   {user.role === Role.ADMIN ? 'Admin' : 'User'}
                 </span>
               </div>
               <button
                 onClick={onLogout}
-                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                 title="ออกจากระบบ"
               >
                 <LogOut size={20} />
@@ -86,7 +90,7 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:w-full">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-4 md:p-8 print:p-0 print:bg-white print:overflow-visible print:h-auto print:w-full">
           {children}
         </main>
       </div>

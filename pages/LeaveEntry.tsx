@@ -151,15 +151,15 @@ const LeaveEntry: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-        <span className="p-2 bg-blue-100 rounded-lg mr-3 text-blue-700">
+      <h2 className="text-2xl font-bold text-slate-800 flex items-center">
+        <span className="p-2.5 bg-white rounded-xl mr-3 text-slate-600 shadow-sm border border-slate-200">
            <FilePlus className="w-6 h-6" />
         </span>
         บันทึกการลา
       </h2>
 
       {notification && (
-        <div className={`p-4 rounded-xl flex items-center shadow-sm ${notification.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+        <div className={`p-4 rounded-xl flex items-center shadow-sm ${notification.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
           {notification.type === 'success' ? <CheckCircle className="mr-2" /> : <XCircle className="mr-2" />}
           {notification.msg}
         </div>
@@ -168,13 +168,13 @@ const LeaveEntry: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left: Staff List */}
-        <div className="bg-indigo-50/50 p-4 rounded-xl shadow-sm border border-indigo-100 h-[650px] flex flex-col">
-          <h3 className="font-bold text-indigo-900 mb-4 flex items-center bg-white p-3 rounded-lg shadow-sm">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 h-[650px] flex flex-col">
+          <h3 className="font-bold text-slate-700 mb-4 flex items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
             <User className="w-4 h-4 mr-2" /> รายชื่อบุคลากร
           </h3>
           
           {loadingStaff ? (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="flex-1 flex items-center justify-center text-slate-400">
                 <Loader2 className="animate-spin mr-2" /> กำลังโหลด...
             </div>
           ) : (
@@ -186,14 +186,14 @@ const LeaveEntry: React.FC = () => {
                     onDragStart={(e) => handleDragStart(e, staff)}
                     onClick={() => setSelectedStaff(staff)}
                     className={`p-3 rounded-lg border cursor-pointer transition-all flex justify-between items-center group
-                    ${selectedStaff?.id === staff.id ? 'bg-school-primary text-white border-school-primary shadow-md' : 'bg-white hover:bg-blue-50 border-gray-200 text-gray-700'}
+                    ${selectedStaff?.id === staff.id ? 'bg-school-primary text-white border-school-primary shadow-md' : 'bg-slate-50 hover:bg-white border-transparent hover:border-slate-200 hover:shadow-sm text-slate-600'}
                     `}
                 >
                     <span className="font-medium">{staff.name}</span>
-                    <MoveRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 ${selectedStaff?.id === staff.id ? 'text-white' : 'text-gray-400'}`} />
+                    <MoveRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 ${selectedStaff?.id === staff.id ? 'text-white' : 'text-slate-400'}`} />
                 </div>
                 ))}
-                {staffList.length === 0 && <p className="text-center text-gray-400 mt-4">ไม่พบรายชื่อ</p>}
+                {staffList.length === 0 && <p className="text-center text-slate-400 mt-4">ไม่พบรายชื่อ</p>}
             </div>
           )}
         </div>
@@ -205,38 +205,38 @@ const LeaveEntry: React.FC = () => {
           <div 
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className={`p-8 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center h-40 shadow-sm
-              ${selectedStaff ? 'border-green-400 bg-green-50' : 'border-indigo-200 bg-indigo-50/50 hover:border-school-primary hover:bg-blue-50'}
+            className={`p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center h-40 shadow-sm
+              ${selectedStaff ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white hover:border-school-primary hover:bg-slate-50'}
             `}
           >
             {selectedStaff ? (
               <div className="text-center animate-fade-in">
-                <p className="text-sm text-green-600 mb-1 font-medium">บุคลากรที่เลือก</p>
-                <h3 className="text-2xl font-bold text-gray-800">{selectedStaff.name}</h3>
-                <span className="inline-block mt-1 px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm">
+                <p className="text-sm text-emerald-600 mb-1 font-medium">บุคลากรที่เลือก</p>
+                <h3 className="text-2xl font-bold text-slate-800">{selectedStaff.name}</h3>
+                <span className="inline-block mt-1 px-3 py-1 bg-emerald-200 text-emerald-800 rounded-full text-xs font-semibold">
                     {selectedStaff.position}
                 </span>
               </div>
             ) : (
-              <div className="text-center text-indigo-300 pointer-events-none">
-                <div className="bg-indigo-100 p-3 rounded-full inline-block mb-3">
-                    <User className="w-8 h-8 text-indigo-400" />
+              <div className="text-center text-slate-300 pointer-events-none">
+                <div className="bg-slate-50 p-3 rounded-full inline-block mb-3">
+                    <User className="w-8 h-8 text-slate-400" />
                 </div>
-                <p className="text-indigo-800 font-medium">ลากชื่อมาวางที่นี่</p>
+                <p className="text-slate-500 font-medium">ลากชื่อมาวางที่นี่</p>
                 <p className="text-sm">หรือ คลิกชื่อจากรายการด้านซ้าย</p>
               </div>
             )}
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row gap-4">
                  <div className="flex-1">
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">ตำแหน่ง</label>
+                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">ตำแหน่ง</label>
                     <select 
-                      className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
+                      className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary bg-slate-50"
                       value={formData.position}
                       onChange={(e) => setFormData({...formData, position: e.target.value})}
                       required
@@ -246,10 +246,10 @@ const LeaveEntry: React.FC = () => {
                     </select>
                  </div>
                  <div className="md:w-1/3">
-                    <label className="block text-sm font-semibold text-gray-600 mb-1">วันที่ยื่น/เขียนใบลา</label>
+                    <label className="block text-sm font-semibold text-slate-600 mb-1.5">วันที่ยื่น/เขียนใบลา</label>
                     <input 
                       type="date"
-                      className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
+                      className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary bg-slate-50"
                       value={formData.filedDate}
                       onChange={(e) => setFormData({...formData, filedDate: e.target.value})}
                       required
@@ -258,9 +258,9 @@ const LeaveEntry: React.FC = () => {
               </div>
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-600 mb-1">ประเภทการลา</label>
+                <label className="block text-sm font-semibold text-slate-600 mb-1.5">ประเภทการลา</label>
                 <select 
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
+                  className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary bg-slate-50"
                   value={formData.leaveType}
                   onChange={(e) => setFormData({...formData, leaveType: e.target.value})}
                 >
@@ -269,25 +269,25 @@ const LeaveEntry: React.FC = () => {
               </div>
 
               {/* Date Selection */}
-              <div className="col-span-1 md:col-span-2 bg-blue-50/50 p-5 rounded-xl border border-blue-100">
-                <label className="block text-sm font-bold text-blue-900 mb-3">ระบุวันลา (สามารถเพิ่มได้หลายช่วง)</label>
+              <div className="col-span-1 md:col-span-2 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                <label className="block text-sm font-bold text-slate-700 mb-3">ระบุวันลา (สามารถเพิ่มได้หลายช่วง)</label>
                 
                 <div className="flex flex-col md:flex-row gap-3 items-end mb-3">
                   <div className="flex-1 w-full">
-                    <label className="block text-xs text-blue-600 mb-1 font-medium">วันที่เริ่ม</label>
+                    <label className="block text-xs text-slate-500 mb-1 font-medium">วันที่เริ่ม</label>
                     <input 
                       type="date"
-                      className="w-full border-blue-200 rounded-lg shadow-sm p-2 border focus:ring-school-primary focus:border-school-primary"
+                      className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
                       value={tempStart}
                       min="2025-01-01"
                       onChange={(e) => setTempStart(e.target.value)}
                     />
                   </div>
                   <div className="flex-1 w-full">
-                    <label className="block text-xs text-blue-600 mb-1 font-medium">ถึงวันที่ (ถ้าวันเดียวไม่ต้องระบุ)</label>
+                    <label className="block text-xs text-slate-500 mb-1 font-medium">ถึงวันที่ (ถ้าวันเดียวไม่ต้องระบุ)</label>
                     <input 
                       type="date"
-                      className="w-full border-blue-200 rounded-lg shadow-sm p-2 border focus:ring-school-primary focus:border-school-primary"
+                      className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
                       value={tempEnd}
                       min={tempStart}
                       onChange={(e) => setTempEnd(e.target.value)}
@@ -298,24 +298,24 @@ const LeaveEntry: React.FC = () => {
                     type="button"
                     onClick={addDateRange}
                     disabled={!tempStart}
-                    className="flex items-center px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    className="flex items-center px-4 py-2.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
-                    <Plus className="w-4 h-4 mr-1" /> เพิ่ม
+                    <Plus className="w-5 h-5 mr-1" /> เพิ่ม
                   </button>
                 </div>
 
                 {dateRanges.length > 0 && (
-                  <div className="space-y-2 mt-3 p-2 bg-white rounded-lg border border-blue-100 max-h-40 overflow-y-auto">
+                  <div className="space-y-2 mt-3 p-2 bg-white rounded-xl border border-slate-200 max-h-40 overflow-y-auto custom-scrollbar">
                     {dateRanges.map((range, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 px-3 rounded-md border border-gray-100 shadow-sm text-sm">
-                        <span className="text-gray-700 font-medium">
+                      <div key={idx} className="flex justify-between items-center bg-slate-50 p-2 px-3 rounded-lg border border-slate-100 shadow-sm text-sm">
+                        <span className="text-slate-700 font-medium">
                            {new Date(range.start).toLocaleDateString('th-TH')} 
                            {range.end && range.end !== range.start && ` - ${new Date(range.end).toLocaleDateString('th-TH')}`}
                         </span>
                         <button 
                           type="button" 
                           onClick={() => removeDateRange(idx)}
-                          className="text-red-400 hover:text-red-600 bg-white p-1 rounded shadow-sm"
+                          className="text-red-400 hover:text-red-600 bg-white p-1 rounded-md shadow-sm border border-slate-100"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -324,27 +324,27 @@ const LeaveEntry: React.FC = () => {
                   </div>
                 )}
                 {dateRanges.length === 0 && tempStart && (
-                  <div className="mt-2 text-xs text-blue-400 italic">
+                  <div className="mt-2 text-xs text-blue-500 italic">
                     * ระบบจะใช้วันที่ที่ระบุในช่องด้านบน หากไม่ได้กดปุ่ม "เพิ่ม"
                   </div>
                 )}
               </div>
 
               <div className="col-span-1 md:col-span-2">
-                 <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                 <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <label className="inline-flex items-center cursor-pointer">
                         <input 
                         type="checkbox" 
                         id="halfDay"
                         checked={formData.isHalfDay}
                         onChange={(e) => setFormData({...formData, isHalfDay: e.target.checked})}
-                        className="h-5 w-5 text-school-primary focus:ring-school-primary border-gray-300 rounded"
+                        className="h-5 w-5 text-school-primary focus:ring-school-primary border-slate-300 rounded"
                         />
-                        <span className="ml-2 text-sm font-semibold text-gray-700">ลาครึ่งวัน</span>
+                        <span className="ml-3 text-sm font-semibold text-slate-700">ลาครึ่งวัน</span>
                     </label>
 
                     {formData.isHalfDay && (
-                      <div className="flex space-x-4 ml-6 pl-6 border-l border-gray-300">
+                      <div className="flex space-x-4 ml-6 pl-6 border-l border-slate-300">
                         <label className="inline-flex items-center cursor-pointer">
                           <input 
                             type="radio" 
@@ -354,7 +354,7 @@ const LeaveEntry: React.FC = () => {
                             onChange={() => setFormData({...formData, halfDayPeriod: 'morning'})}
                             className="text-school-primary focus:ring-school-primary"
                           />
-                          <span className="ml-2 text-sm text-gray-600">ช่วงเช้า</span>
+                          <span className="ml-2 text-sm text-slate-600">ช่วงเช้า</span>
                         </label>
                         <label className="inline-flex items-center cursor-pointer">
                           <input 
@@ -365,7 +365,7 @@ const LeaveEntry: React.FC = () => {
                             onChange={() => setFormData({...formData, halfDayPeriod: 'afternoon'})}
                             className="text-school-primary focus:ring-school-primary"
                           />
-                          <span className="ml-2 text-sm text-gray-600">ช่วงบ่าย</span>
+                          <span className="ml-2 text-sm text-slate-600">ช่วงบ่าย</span>
                         </label>
                       </div>
                     )}
@@ -373,16 +373,16 @@ const LeaveEntry: React.FC = () => {
               </div>
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-600 mb-1">จำนวนวันรวม</label>
-                <div className="text-3xl font-bold text-school-primary bg-blue-50 inline-block px-4 py-2 rounded-lg border border-blue-100">
-                  {calculateTotalDays()} <span className="text-base font-normal text-gray-500">วัน</span>
+                <label className="block text-sm font-semibold text-slate-600 mb-1.5">จำนวนวันรวม</label>
+                <div className="text-3xl font-bold text-school-primary bg-slate-50 inline-block px-5 py-2 rounded-xl border border-slate-200">
+                  {calculateTotalDays()} <span className="text-base font-normal text-slate-500">วัน</span>
                 </div>
               </div>
 
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-600 mb-1">หมายเหตุ</label>
+                <label className="block text-sm font-semibold text-slate-600 mb-1.5">หมายเหตุ</label>
                 <textarea 
-                  className="w-full border-gray-300 rounded-lg shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary"
+                  className="w-full border-slate-300 rounded-xl shadow-sm p-2.5 border focus:ring-school-primary focus:border-school-primary bg-slate-50"
                   rows={3}
                   value={formData.note}
                   onChange={(e) => setFormData({...formData, note: e.target.value})}
@@ -394,7 +394,7 @@ const LeaveEntry: React.FC = () => {
             <div className="mt-8 flex justify-end">
               <button 
                 type="submit" 
-                className="flex items-center px-8 py-3 bg-school-primary text-white rounded-lg hover:bg-blue-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
+                className="flex items-center px-8 py-3 bg-school-primary text-white rounded-xl hover:bg-blue-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg"
                 disabled={!selectedStaff || (dateRanges.length === 0 && !tempStart) || isSubmitting}
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <Save className="w-5 h-5 mr-2" />}
