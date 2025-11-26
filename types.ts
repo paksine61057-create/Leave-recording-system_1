@@ -4,6 +4,7 @@ export enum Role {
 }
 
 export interface User {
+  id?: string; // Added for identifying user in DB operations
   username: string;
   role: Role;
   fullName: string;
@@ -13,6 +14,7 @@ export interface Staff {
   id: string;
   name: string;
   position: string;
+  password?: string; // Added for authentication
 }
 
 export interface LeaveRecord {

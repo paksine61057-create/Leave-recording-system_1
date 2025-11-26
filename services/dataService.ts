@@ -67,6 +67,16 @@ export const removeStaff = async (id: string): Promise<void> => {
   await apiRequest('deleteStaff', { id });
 };
 
+export const changePassword = async (staffId: string, newPass: string): Promise<boolean> => {
+    try {
+        await apiRequest('changePassword', { staffId, newPassword: newPass });
+        return true;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+};
+
 // --- Leave Management ---
 
 export const getLeaveRecords = async (): Promise<LeaveRecord[]> => {
@@ -133,16 +143,23 @@ export const authenticate = async (username: string, pass: string): Promise<User
   let user: User | null = null;
 
   if (username === 'admin' && pass === 'admin4444') {
-    user = { username: 'admin', role: Role.ADMIN, fullName: 'ผู้ดูแลระบบ' };
+    user = { id: 'admin', username: 'admin', role: Role.ADMIN, fullName: 'ผู้ดูแลระบบ' };
   } else {
     // Fetch staff list to verify user
     const staffList = await getStaffList();
     const foundStaff = staffList.find(s => {
+      // Logic from requirement: username = First Name
       return s.name.includes(username);
     });
 
-    if (foundStaff && pass === 'PJ123') {
-       user = { username, role: Role.USER, fullName: foundStaff.name };
+    if (foundStaff) {
+       // Logic: Use stored password if exists, else fallback to PJ123
+       const storedPass = foundStaff.password;
+       const isMatch = storedPass ? (storedPass === pass) : (pass === 'PJ123');
+
+       if (isMatch) {
+          user = { id: foundStaff.id, username, role: Role.USER, fullName: foundStaff.name };
+       }
     }
   }
 

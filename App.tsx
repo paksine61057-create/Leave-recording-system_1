@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { User, Role } from './types';
-import { authenticate } from './services/dataService';
+import { authenticate, changePassword } from './services/dataService';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import LeaveEntry from './pages/LeaveEntry';
@@ -10,7 +10,7 @@ import Personnel from './pages/Personnel';
 import History from './pages/History';
 import AccessLogs from './pages/AccessLogs';
 import Login from './pages/Login';
-import { Menu, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, LogOut, User as UserIcon, Key, X, Save, Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children, user, requiredRole }: { children?: React.ReactNode, user: User | null, requiredRole?: Role }) => {
   if (!user) {
@@ -26,10 +26,46 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // Change Password Modal State
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passLoading, setPassLoading] = useState(false);
+
   // Close sidebar on mobile route change
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location]);
+
+  const onSavePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPass !== confirmPass) {
+        alert("รหัสผ่านใหม่ไม่ตรงกัน");
+        return;
+    }
+    if (newPass.length < 4) {
+        alert("รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร");
+        return;
+    }
+    if (user.role === Role.ADMIN) {
+        alert("ผู้ดูแลระบบไม่สามารถเปลี่ยนรหัสผ่านผ่านหน้านี้ได้");
+        return;
+    }
+    if (!user.id) return;
+
+    setPassLoading(true);
+    const success = await changePassword(user.id, newPass);
+    setPassLoading(false);
+
+    if (success) {
+        alert("เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่ด้วยรหัสผ่านใหม่");
+        setIsPassModalOpen(false);
+        setNewPass('');
+        setConfirmPass('');
+    } else {
+        alert("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans print:h-auto print:overflow-visible print:block">
@@ -66,7 +102,7 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
                  </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <div className="hidden md:flex items-center text-sm text-slate-700 bg-slate-50 py-1 px-3 rounded-full border border-slate-200">
                 <UserIcon size={16} className="mr-2 text-slate-400" />
                 <span className="font-semibold">{user.fullName}</span>
@@ -78,6 +114,17 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
                   {user.role === Role.ADMIN ? 'Admin' : 'User'}
                 </span>
               </div>
+              
+              {user.role === Role.USER && (
+                <button
+                    onClick={() => setIsPassModalOpen(true)}
+                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all"
+                    title="เปลี่ยนรหัสผ่าน"
+                >
+                    <Key size={20} />
+                </button>
+              )}
+
               <button
                 onClick={onLogout}
                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
@@ -94,6 +141,57 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
           {children}
         </main>
       </div>
+
+      {/* Change Password Modal */}
+      {isPassModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200">
+              <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                 <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                    <Key className="w-5 h-5 mr-2 text-amber-500" /> เปลี่ยนรหัสผ่าน
+                 </h3>
+                 <button onClick={() => setIsPassModalOpen(false)} className="text-slate-400 hover:text-red-500">
+                    <X className="w-5 h-5" />
+                 </button>
+              </div>
+              <form onSubmit={onSavePassword} className="p-6 space-y-4">
+                 <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">รหัสผ่านใหม่</label>
+                    <input 
+                      type="password"
+                      required
+                      className="w-full border-slate-300 rounded-xl border p-2.5 text-sm focus:ring-school-primary focus:border-school-primary bg-slate-50"
+                      value={newPass}
+                      onChange={e => setNewPass(e.target.value)}
+                      placeholder="กำหนดรหัสผ่านใหม่"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">ยืนยันรหัสผ่านใหม่</label>
+                    <input 
+                      type="password"
+                      required
+                      className="w-full border-slate-300 rounded-xl border p-2.5 text-sm focus:ring-school-primary focus:border-school-primary bg-slate-50"
+                      value={confirmPass}
+                      onChange={e => setConfirmPass(e.target.value)}
+                      placeholder="กรอกรหัสผ่านอีกครั้ง"
+                    />
+                 </div>
+                 <div className="pt-2">
+                    <button 
+                      type="submit" 
+                      disabled={passLoading}
+                      className="w-full flex justify-center items-center py-2.5 bg-school-primary text-white rounded-xl hover:bg-blue-800 transition-colors shadow-md font-medium disabled:opacity-70"
+                    >
+                      {passLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                      {passLoading ? 'กำลังบันทึก...' : 'บันทึกรหัสผ่าน'}
+                    </button>
+                 </div>
+              </form>
+           </div>
+        </div>
+      )}
+
     </div>
   );
 };
