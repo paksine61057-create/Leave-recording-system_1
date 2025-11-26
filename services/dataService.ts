@@ -47,7 +47,14 @@ export const getStaffList = async (): Promise<Staff[]> => {
              // Fix logic applied on read to ensure specific people have correct titles if not set in DB
              if (s.name.includes('ชัชตะวัน') && s.position !== 'ผู้อำนวยการ') pos = 'ผู้อำนวยการ';
              if (s.name.includes('ภราดร') && s.position !== 'รองผู้อำนวยการ') pos = 'รองผู้อำนวยการ';
-             return { ...s, position: pos };
+             
+             // Ensure ID and Password are strings to prevent type mismatch issues
+             return { 
+                 ...s, 
+                 id: String(s.id),
+                 position: pos,
+                 password: s.password ? String(s.password) : undefined
+             };
         });
     }
     return [];
@@ -69,7 +76,8 @@ export const removeStaff = async (id: string): Promise<void> => {
 
 export const changePassword = async (staffId: string, newPass: string): Promise<boolean> => {
     try {
-        await apiRequest('changePassword', { staffId, newPassword: newPass });
+        // We force conversion to string for the ID to match what we enforced in getStaffList
+        await apiRequest('changePassword', { staffId: String(staffId), newPassword: newPass });
         return true;
     } catch (e) {
         console.error(e);
@@ -155,7 +163,24 @@ export const authenticate = async (username: string, pass: string): Promise<User
     if (foundStaff) {
        // Logic: Use stored password if exists, else fallback to PJ123
        const storedPass = foundStaff.password;
-       const isMatch = storedPass ? (storedPass === pass) : (pass === 'PJ123');
+       let isMatch = false;
+
+       if (storedPass) {
+           // Exact match
+           if (String(storedPass) === pass) {
+               isMatch = true;
+           } 
+           // Fuzzy match for Leading Zero issue (e.g., DB has "70162", User types "070162")
+           // Check if both are numbers and equal
+           else if (!isNaN(Number(storedPass)) && !isNaN(Number(pass))) {
+               if (Number(storedPass) === Number(pass)) {
+                   isMatch = true;
+               }
+           }
+       } else {
+           // Default password check
+           isMatch = (pass === 'PJ123');
+       }
 
        if (isMatch) {
           user = { id: foundStaff.id, username, role: Role.USER, fullName: foundStaff.name };
