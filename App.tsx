@@ -51,7 +51,10 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
         alert("ผู้ดูแลระบบไม่สามารถเปลี่ยนรหัสผ่านผ่านหน้านี้ได้");
         return;
     }
-    if (!user.id) return;
+    if (!user.id) {
+        alert("ไม่พบข้อมูลรหัสผู้ใช้ (ID) กรุณาออกจากระบบแล้วเข้าใหม่");
+        return;
+    }
 
     setPassLoading(true);
     const success = await changePassword(user.id, newPass);
@@ -66,6 +69,13 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
         alert("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
     }
   };
+
+  // Check if user session is stale (missing ID) and force logout to refresh data
+  useEffect(() => {
+     if (user && user.role === Role.USER && !user.id) {
+         onLogout();
+     }
+  }, [user, onLogout]);
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans print:h-auto print:overflow-visible print:block">
@@ -84,32 +94,35 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:h-auto print:block relative">
-        {/* Header - Glassmorphism */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 print:hidden sticky top-0">
+        {/* Header - Iris Color Theme */}
+        <header className="bg-indigo-600 border-b border-indigo-500 z-10 print:hidden sticky top-0 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors"
+                className="lg:hidden p-2 rounded-md text-indigo-200 hover:text-white hover:bg-indigo-500 focus:outline-none transition-colors"
               >
                 <Menu size={24} />
               </button>
               <div className="flex items-center ml-2 lg:ml-0">
-                 <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-9 w-9 mr-3 drop-shadow-sm" />
+                 {/* Logo with white circle background */}
+                 <div className="bg-white rounded-full p-1.5 mr-3 shadow-sm">
+                    <img src="https://img5.pic.in.th/file/secure-sv1/5bc66fd0-c76e-41c4-87ed-46d11f4a36fa.png" alt="Logo" className="h-8 w-8" />
+                 </div>
                  <div>
-                   <h1 className="text-lg font-bold text-slate-800 leading-tight">ระบบบันทึกการลา</h1>
-                   <p className="text-xs text-slate-500 font-medium">โรงเรียนประจักษ์ศิลปาคม</p>
+                   <h1 className="text-lg font-bold text-white leading-tight">ระบบบันทึกการลา</h1>
+                   <p className="text-xs text-indigo-200 font-medium">โรงเรียนประจักษ์ศิลปาคม</p>
                  </div>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
-              <div className="hidden md:flex items-center text-sm text-slate-700 bg-slate-50 py-1 px-3 rounded-full border border-slate-200">
-                <UserIcon size={16} className="mr-2 text-slate-400" />
+              <div className="hidden md:flex items-center text-sm text-indigo-100 bg-indigo-700/50 py-1 px-3 rounded-full border border-indigo-500">
+                <UserIcon size={16} className="mr-2 text-indigo-300" />
                 <span className="font-semibold">{user.fullName}</span>
                 <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
                     user.role === Role.ADMIN 
-                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200' 
-                    : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                    ? 'bg-pink-500 text-white border-pink-400' 
+                    : 'bg-emerald-500 text-white border-emerald-400'
                 }`}>
                   {user.role === Role.ADMIN ? 'Admin' : 'User'}
                 </span>
@@ -118,7 +131,7 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
               {user.role === Role.USER && (
                 <button
                     onClick={() => setIsPassModalOpen(true)}
-                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all"
+                    className="p-2 text-indigo-200 hover:text-white hover:bg-indigo-500 rounded-full transition-all"
                     title="เปลี่ยนรหัสผ่าน"
                 >
                     <Key size={20} />
@@ -127,7 +140,7 @@ const Layout = ({ children, user, onLogout }: { children?: React.ReactNode, user
 
               <button
                 onClick={onLogout}
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                className="p-2 text-indigo-200 hover:text-red-200 hover:bg-red-500/20 rounded-full transition-all"
                 title="ออกจากระบบ"
               >
                 <LogOut size={20} />
